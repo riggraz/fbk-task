@@ -2,11 +2,15 @@ import torch
 import skorch
 from sklearn import svm
 from sklearn.model_selection import train_test_split
+from sklearn.metrics.cluster import contingency_matrix
+from statsmodels.stats.contingency_tables import mcnemar
 
 import config
-from utils import load_object_dataset
+from utils import load_object_dataset, np2tensor, print_metrics
 from model_pipeline import ModelPipeline
 from nn import NN
+
+torch.manual_seed(config.SEED)
 
 class Pipeline:
   def __init__(self) -> None:
@@ -31,11 +35,11 @@ class Pipeline:
 
     svm_pipeline = ModelPipeline(
       svm_model,
-      (X_train, X_test, y_train, y_test),
+      (X_train, y_train),
       config.SVM_PARAM_GRID,
       seed=config.SEED,
     )
-    svm_pipeline.run()
+    svm_classifier = svm_pipeline.run()
 
     # Set up and run neural network pipeline
     print('\n\n--> Neural network')
@@ -52,9 +56,34 @@ class Pipeline:
 
     nn_pipeline = ModelPipeline(
       nn_model,
-      (X_train, X_test, y_train, y_test),
+      (X_train, y_train),
       config.NN_PARAM_GRID,
       seed=config.SEED,
       convert_data_to_tensor=True,
     )
-    nn_pipeline.run()
+    nn_classifier = nn_pipeline.run()
+
+    # Evaluate the classifiers
+    svm_y_test_pred = svm_classifier.predict(X_test)
+    print('--> SVM metrics')
+    print_metrics(y_test, svm_y_test_pred)
+
+    nn_y_test_pred = nn_classifier.predict(np2tensor(X_test))
+    print('--> Neural network metrics')
+    print_metrics(y_test, nn_y_test_pred)
+
+    # Compare the two classifiers with McNemar's test
+    print('Performing McNemar test...')
+    svm_y_test_pred_correctness = svm_y_test_pred == y_test
+    nn_y_test_pred_correctness = nn_y_test_pred == y_test
+    contingency_table = contingency_matrix(svm_y_test_pred_correctness, nn_y_test_pred_correctness)
+
+    mcnemar_result = mcnemar(contingency_table)
+    print(mcnemar_result)
+
+    alpha = 0.05
+    if mcnemar_result.pvalue > alpha:
+      print('Null hypothesis cannot be rejected. The two models have NO meaningfully different performances.')
+    else:
+      print('Null hypothesis can be rejected. The two models have meaningfully different performances.')
+    

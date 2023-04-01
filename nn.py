@@ -1,7 +1,7 @@
 from torch import nn
 
 class NN(nn.Module):
-  def __init__(self, n_neurons) -> None:
+  def __init__(self, n_neurons=50) -> None:
     super(NN, self).__init__()
 
     self.layer1 = nn.Linear(5, n_neurons)

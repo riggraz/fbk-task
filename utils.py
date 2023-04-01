@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 def load_object_dataset(dataset_name='object.csv'):
   dataset = np.genfromtxt(
@@ -14,3 +15,14 @@ def load_object_dataset(dataset_name='object.csv'):
 
 def np2tensor(np_array):
   return torch.tensor(np_array, dtype=torch.float32)
+
+def print_metrics(y_true, y_pred) -> None:
+  accuracy = accuracy_score(y_true, y_pred)
+  precision = precision_score(y_true, y_pred)
+  recall = recall_score(y_true, y_pred)
+  f1 = f1_score(y_true, y_pred)
+
+  print(f'Accuracy = {accuracy:.2f}')
+  print(f'Precision = {precision:.2f}')
+  print(f'Recall = {recall:.2f}')
+  print(f'F1 = {f1:.2f}')
