@@ -23,9 +23,9 @@ class ModelPipeline:
       self.model,
       param_grid=self.param_grid,
       cv=cv,
-      refit=True,
+      refit=True, # retrain best model over entire training set
       n_jobs=1,
-      verbose=2,
+      verbose=3,
     )
 
     # Perform grid search and retraining with best hyperparameters

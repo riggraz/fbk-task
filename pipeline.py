@@ -28,14 +28,11 @@ class Pipeline:
     print('--> SVM')
 
     svm_model = svm.SVC()
-    svm_param_grid = {
-      'C': [0.1, 1, 10, 100, 1000],
-    }
 
     svm_pipeline = ModelPipeline(
       svm_model,
       (X_train, X_test, y_train, y_test),
-      svm_param_grid,
+      config.SVM_PARAM_GRID,
       seed=config.SEED,
     )
     svm_pipeline.run()
@@ -47,22 +44,16 @@ class Pipeline:
     nn_model = skorch.NeuralNetBinaryClassifier(
       NN,
       criterion=torch.nn.BCEWithLogitsLoss,
-      optimizer=torch.optim.Adam,
-      lr=0.0001,
-      max_epochs=10,
       batch_size=50,
+      max_epochs=10,
       train_split=None, # do not use validation set (it's already done by GridSearchCV in the model pipeline)
       verbose=0,
     )
-    nn_param_grid = {
-      'lr': [0.0001, 0.001, 0.01],
-      'batch_size': [50, 100, 200],
-    }
 
     nn_pipeline = ModelPipeline(
       nn_model,
       (X_train, X_test, y_train, y_test),
-      nn_param_grid,
+      config.NN_PARAM_GRID,
       seed=config.SEED,
       convert_data_to_tensor=True,
     )
