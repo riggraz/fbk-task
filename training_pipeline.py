@@ -2,20 +2,22 @@ from sklearn.model_selection import KFold, GridSearchCV
 
 from utils import np2tensor
 
-# Performs grid search and returns best classifier
-class ModelPipeline:
-  def __init__(self, model, train_dataset, param_grid, seed=None, convert_data_to_tensor=False) -> None:
+# Performs grid search and retrain with best hyperparameters
+# Returns classifier
+class TrainingPipeline:
+  def __init__(self, model, train_dataset, param_grid, seed=None, convert_data_to_tensor=False, k_fold_n_splits=3) -> None:
     self.model = model
     self.train_dataset = train_dataset
     self.param_grid = param_grid
     self.seed = seed
     self.convert_data_to_tensor = convert_data_to_tensor
+    self.k_fold_n_splits = k_fold_n_splits
 
   def run(self):
     X_train, y_train = self.train_dataset
 
     # Define cross validation strategy
-    cv = KFold(n_splits=3, shuffle=True, random_state=self.seed)
+    cv = KFold(n_splits=self.k_fold_n_splits, shuffle=True, random_state=self.seed)
 
     # Define grid search
     grid_search = GridSearchCV(

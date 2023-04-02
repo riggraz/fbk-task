@@ -7,7 +7,7 @@ from statsmodels.stats.contingency_tables import mcnemar
 
 import config
 from utils import load_object_dataset, np2tensor, print_metrics
-from model_pipeline import ModelPipeline
+from training_pipeline import TrainingPipeline
 from nn import NN
 
 torch.manual_seed(config.SEED)
@@ -28,20 +28,18 @@ class Pipeline:
       random_state=config.SEED,
     )
 
-    # Set up and run SVM pipeline
+    # Set up and run SVM training pipeline
     print('--> SVM')
 
-    svm_model = svm.SVC()
-
-    svm_pipeline = ModelPipeline(
-      svm_model,
+    svm_pipeline = TrainingPipeline(
+      svm.SVC(),
       (X_train, y_train),
       config.SVM_PARAM_GRID,
       seed=config.SEED,
     )
     svm_classifier = svm_pipeline.run()
 
-    # Set up and run neural network pipeline
+    # Set up and run neural network training pipeline
     print('\n\n--> Neural network')
 
     # Wrap PyTorch model in skorch to use it with sklearn
@@ -54,7 +52,7 @@ class Pipeline:
       verbose=0,
     )
 
-    nn_pipeline = ModelPipeline(
+    nn_pipeline = TrainingPipeline(
       nn_model,
       (X_train, y_train),
       config.NN_PARAM_GRID,
@@ -77,13 +75,14 @@ class Pipeline:
     svm_y_test_pred_correctness = svm_y_test_pred == y_test
     nn_y_test_pred_correctness = nn_y_test_pred == y_test
     contingency_table = contingency_matrix(svm_y_test_pred_correctness, nn_y_test_pred_correctness)
+    print(f'Contingency table = {contingency_table}')
 
     mcnemar_result = mcnemar(contingency_table)
     print(mcnemar_result)
 
     alpha = 0.05
     if mcnemar_result.pvalue > alpha:
-      print('Null hypothesis cannot be rejected. The two models have NO meaningfully different performances.')
+      print('Null hypothesis cannot be rejected. The two models have NO meaningfully different error rates on test set.')
     else:
-      print('Null hypothesis can be rejected. The two models have meaningfully different performances.')
+      print('Null hypothesis can be rejected. The two models have meaningfully different error rates on the test.')
     
