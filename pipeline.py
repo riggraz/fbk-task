@@ -34,7 +34,7 @@ class Pipeline:
     print('--> SVM')
 
     # Setup SVM model and enable probability estimates computation,
-    # which is required for calculating auc score, but requires more computational time
+    # which is required for calculating auc score, but requires considerably more computational time
     svm_model = svm.SVC(probability=True)
 
     svm_pipeline = TrainingPipeline(
@@ -46,7 +46,7 @@ class Pipeline:
     svm_classifier = svm_pipeline.run()
 
     # Set up and run neural network training pipeline
-    print('\n\n--> Neural network')
+    print('\n--> Neural network')
 
     # Wrap PyTorch model in skorch to use it with sklearn
     nn_model = skorch.NeuralNetBinaryClassifier(
@@ -75,7 +75,7 @@ class Pipeline:
     print_metrics(y_test, svm_y_test_pred)
     print(f'ROC AUC score = {svm_roc_auc:.2f}')
 
-    print('--> Neural network metrics')
+    print('\n--> Neural network metrics')
     nn_y_test_pred_proba = nn_classifier.predict_proba(np2tensor(X_test))
     nn_y_test_pred = np.argmax(nn_y_test_pred_proba, axis=1)
     nn_roc_auc = roc_auc_score(y_test, nn_y_test_pred_proba[:, 1])
@@ -83,11 +83,12 @@ class Pipeline:
     print(f'ROC AUC score = {nn_roc_auc:.2f}')
 
     # Compare the two classifiers with McNemar's test
-    print('Performing McNemar test...')
+    print('\nPerforming McNemar test...')
     svm_y_test_pred_correctness = svm_y_test_pred == y_test
     nn_y_test_pred_correctness = nn_y_test_pred == y_test
     contingency_table = contingency_matrix(svm_y_test_pred_correctness, nn_y_test_pred_correctness)
-    print(f'Contingency table = {contingency_table}')
+    print('Contingency table:')
+    print(contingency_table)
 
     mcnemar_result = mcnemar(contingency_table)
     print(mcnemar_result)

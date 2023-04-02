@@ -39,3 +39,35 @@ Configurations for train-test split size, seed and hyperparameters grids can be 
 
 ## Results
 
+Results obtained by running the pipeline with seed=42 are the following:
+
+```
+--> SVM metrics
+Accuracy = 0.97
+Precision = 0.95
+Recall = 0.98
+F1 = 0.97
+ROC AUC score = 0.98
+
+--> Neural network metrics
+Accuracy = 0.92
+Precision = 0.90
+Recall = 0.94
+F1 = 0.92
+ROC AUC score = 0.97
+
+Performing McNemar test...
+Contingency table
+[[  59    9]
+ [ 102 1830]]
+pvalue      4.2608701445754604e-21
+statistic   9.0
+```
+
+Since both models achieve high metrics, it can be said for certain that they were both able to learn and generalize quite well from the data. Obviously, it depends on the specific task which metrics are more important than other and whether the obtained results are acceptable or not.
+
+Both models show a higher recall than precision, meaning that they both lean towards predicting "true" and having some false positives.
+
+SVM has achieved overall better metrics than neural network, but the ROC AUC score is pretty similar between the two, meaning that they should have nearly the same ability to distinguish between the two classes. Choosing a different threshold for the neural network prediction may improve its metrics.
+
+To sum up, SVM has achieved better results than neural network in every considered metric, and also the McNemar test has found a statistically significant difference in the number of errors of the two classifiers. It seems safe to say that, at least on the particular train-test split chosen and with the default 0.5 threshold, the SVM model should be preferred over the neural network one in terms of metrics.
