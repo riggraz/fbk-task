@@ -84,5 +84,5 @@ class Pipeline:
     if mcnemar_result.pvalue > alpha:
       print('Null hypothesis cannot be rejected. The two models have NO meaningfully different error rates on test set.')
     else:
-      print('Null hypothesis can be rejected. The two models have meaningfully different error rates on the test.')
+      print('Null hypothesis can be rejected. The two models have meaningfully different error rates on the test set.')
     
