@@ -1,7 +1,9 @@
 import torch
 import skorch
+import numpy as np
 from sklearn import svm
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score
 from sklearn.metrics.cluster import contingency_matrix
 from statsmodels.stats.contingency_tables import mcnemar
 
@@ -31,8 +33,12 @@ class Pipeline:
     # Set up and run SVM training pipeline
     print('--> SVM')
 
+    # Setup SVM model and enable probability estimates computation,
+    # which is required for calculating auc score, but requires more computational time
+    svm_model = svm.SVC(probability=True)
+
     svm_pipeline = TrainingPipeline(
-      svm.SVC(),
+      svm_model,
       (X_train, y_train),
       config.SVM_PARAM_GRID,
       seed=config.SEED,
@@ -62,13 +68,19 @@ class Pipeline:
     nn_classifier = nn_pipeline.run()
 
     # Evaluate the classifiers
-    svm_y_test_pred = svm_classifier.predict(X_test)
     print('--> SVM metrics')
+    svm_y_test_pred_proba = svm_classifier.predict_proba(X_test)
+    svm_y_test_pred = np.argmax(svm_y_test_pred_proba, axis=1)
+    svm_roc_auc = roc_auc_score(y_test, svm_y_test_pred_proba[:, 1])
     print_metrics(y_test, svm_y_test_pred)
+    print(f'ROC AUC score = {svm_roc_auc:.2f}')
 
-    nn_y_test_pred = nn_classifier.predict(np2tensor(X_test))
     print('--> Neural network metrics')
+    nn_y_test_pred_proba = nn_classifier.predict_proba(np2tensor(X_test))
+    nn_y_test_pred = np.argmax(nn_y_test_pred_proba, axis=1)
+    nn_roc_auc = roc_auc_score(y_test, nn_y_test_pred_proba[:, 1])
     print_metrics(y_test, nn_y_test_pred)
+    print(f'ROC AUC score = {nn_roc_auc:.2f}')
 
     # Compare the two classifiers with McNemar's test
     print('Performing McNemar test...')
